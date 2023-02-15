@@ -1,19 +1,12 @@
 import React, { useState } from "react";
 import "./password.css";
+import StrongMeter from "./StrongMeter";
+import Feedback from "./Feedback";
 
 export default function Password() {
     const [password, setPassword] = useState("");
     const [strength, setStrength] = useState(0);
-    const [blockChecker1, setBlockChecker1] = useState("normal");
-    const [blockChecker2, setBlockChecker2] = useState("normal");
-    const [blockChecker3, setBlockChecker3] = useState("normal");
-
-    const feedback = {
-        1: "Password is too short",
-        2: "Password is too weak",
-        3: "Password is medium",
-        4: "Password is strong"
-    }[strength];
+    const [arr, setArr] = useState(['normal', 'normal', 'normal']);
 
     const handleChangePassword = (e) => {
         setPassword(e.target.value);
@@ -21,37 +14,29 @@ export default function Password() {
     };
 
     const validatePassword = (password) => {
-        if (password.match(/\d+/g) || password.match(/\W+/g) || password.match(/[a-zA-Z]+/g)) {
+        const digits = password.match(/\d+/g);
+        const letters = password.match(/[a-zA-Z]+/g);
+        const symbols = password.match(/\W+/g);
+        if (digits || symbols || letters) {
+            setArr(["small", "normal", "normal"]);
             setStrength(2);
-            setBlockChecker1("small");
-            setBlockChecker2("normal");
-            setBlockChecker3("normal");
         };
-        if ((password.match(/[a-zA-Z]+/g) && password.match(/\d+/g)) || (password.match(/\d+/g) && password.match(/\W+/g)) || (password.match(/\W+/g) && password.match(/[a-zA-Z]+/g))) {
+        if ((letters && digits) || (digits && symbols) || (symbols && letters)) {
+            setArr(["medium", "medium", "normal"]);
             setStrength(3);
-            setBlockChecker1("medium");
-            setBlockChecker2("medium");
-            setBlockChecker3("normal");
         };
-        if (password.match(/\W+/g) && password.match(/[a-zA-Z]+/g) && password.match(/\d+/g)) {
+        if (symbols && letters && digits) {
+            setArr(["strong", "strong", "strong"]);
             setStrength(4);
-            setBlockChecker1("strong");
-            setBlockChecker2("strong");
-            setBlockChecker3("strong");
         };
         if (password.length < 7) {
+            setArr(["small", "small", "small"]);
             setStrength(1);
-            setBlockChecker1("small");
-            setBlockChecker2("small");
-            setBlockChecker3("small");
         };
         if (password.length === 0) {
-            setBlockChecker1("normal");
-            setBlockChecker2("normal");
-            setBlockChecker3("normal");
+            setArr(["normal", "normal", "normal"]);
         };
     };
-
     return (
         <div className="App">
             <div className="title">Please input your password </div>
@@ -61,14 +46,8 @@ export default function Password() {
                 value={password}
                 onChange={(e) => handleChangePassword(e)}
             />
-            <div className="block-box">
-                <div className={`block-${blockChecker1}`}></div>
-                <div className={`block-${blockChecker2}`}></div>
-                <div className={`block-${blockChecker3}`} ></div>
-            </div>
-            <div className={`feedback strength-${strength}`} hidden={password.length === 0}>
-                {feedback}
-            </div>
+            <StrongMeter arr={arr} />
+            <Feedback strength={strength} password={password} />
         </div>
     );
 }
